@@ -1,71 +1,80 @@
 //*******************************************
 //
-// Humberto Colin
+// Kyle Finter
 // Computer Networks
 // Assignment #3 : Server
 // October 21, 2018
 // Instructor: Dr. Ajay K. Katangur
 //
 //*******************************************
-#include<stdio.h>
-#include<sys/types.h>
-#include<netinet/in.h>
-#include<string.h>
-#include<stdlib.h>
+#include <stdio.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 
-int main()
-{
-	FILE *fp;
-	int sd,newsd,ser,n,a,cli,pid,bd,port,clilen;
-	char name[100],fileread[100],fname[100],ch,file[100],rcv[100];
-	struct sockaddr_in servaddr,cliaddr;
-	printf("Enter the port address\n");
-	scanf("%d",&port);
-	sd=socket(AF_INET,SOCK_STREAM,0);
-	if(sd<0)
-		printf("Cant create\n");
-	else
-		printf("Socket is created\n");
-	servaddr.sin_family=AF_INET;
-	servaddr.sin_addr.s_addr=htonl(INADDR_ANY);
-	servaddr.sin_port=htons(port);
-	a=sizeof(servaddr);
-	bd=bind(sd,(struct sockaddr *)&servaddr,a);
-	if(bd<0)
-		printf("Cant bind\n");
-	else
-		printf("Binded\n");
-	listen(sd,5);
-	clilen=sizeof(cliaddr);
-	newsd=accept(sd,(struct sockaddr *)&cliaddr,&clilen);
-	if(newsd<0)
-	{
-		printf("Cant accept\n");
-	}
-	else
-		printf("Accepted\n");
-	n=recv(newsd,rcv,100,0);
-	rcv[n]='\0';
-	fp=fopen(rcv,"r");
-	if(fp==NULL)
-	{
-		send(newsd,"error",5,0);
-		close(newsd);
-	}
-	else
-	{
-	while(fgets(fileread,sizeof(fileread),fp))
-		{
-		if(send(newsd,fileread,sizeof(fileread),0)<0)
-		{
-			printf("Cant send\n");
-		}
-		sleep(1);
-		}
-		if(!fgets(fileread,sizeof(fileread),fp))
-		{
-			send(newsd,"completed",999999999,0);
-		}
-	return(0);
-	}
+int main( int argc, char *argv[] )  {
+    struct sockaddr_in server_sin;
+    struct sockaddr_in client_sin;
+    char buffer[500];
+    int sockListen;
+    int sockAccept;
+    unsigned int addressLen;
+    int length;
+    const int Q_LEN = 5;
+
+    //setup address structure
+    bzero((char *) &server_sin, sizeof(server_sin));
+    server_sin.sin_family = AF_INET;
+    server_sin.sin_addr.s_addr = INADDR_ANY;
+    server_sin.sin_port = htons((uint16_t) argv[1]);
+
+    //setup listening socket
+    sockListen = socket(PF_INET, SOCK_STREAM, 0);
+    if (sockListen < 0) {
+        printf("Failed to create listening socket\n");
+        exit(1);
+    }
+
+    if (bind(sockListen, (struct sockaddr *) &server_sin, sizeof(server_sin)) < 0) {
+        printf("Failed to bind listening socket to address\n");
+        exit(2);
+    }
+    
+    if (listen(sockListen, Q_LEN) < 0) {
+        printf("Failed to listen\n");
+        exit(3);
+    }
+
+    addressLen = sizeof(client_sin);
+
+    //wait for connection request
+    while(1){
+        sockAccept = accept(sockListen, (struct sockaddr *) &client_sin, &addressLen);
+        if (sockAccept < 0) {
+            printf("Failed to accept connection\n");
+            exit(4);
+        }
+
+        while(sockAccept > 0) {
+            length = read(sockAccept, buffer, sizeof(buffer));
+            if(length > 0) {
+                int count;
+                for(count = 0; count < length; ++ count) {
+                    printf("%c\n", buffer[count]);
+                }
+                write(sockAccept, buffer, length);
+                if(buffer == "bye") {
+                    break;
+                }
+            }
+            else
+                break;
+        }
+        close(sockAccept);
+    }
+    return 0;
 }
