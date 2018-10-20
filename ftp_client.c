@@ -9,6 +9,8 @@
 //*******************************************
 #include <sys/socket.h>
 #include <stdio.h>
+#include <fcntl.h>
+#include <errno.h>
 #include <string.h>
 #include <sys/types.h>
 #include <netinet/in.h>
@@ -16,6 +18,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <netdb.h>
+#include <dirent.h>
 
 int main( int argc, char *argv[] )  {
     //Create socket
@@ -45,9 +48,13 @@ int main( int argc, char *argv[] )  {
     //Waiting for user input
     char input[10];
     char location[10];
-    while (strcmp(input, "bye") != 0) {
+    while (1) {
         printf("ftp> ");
-        scanf("%s %s", &input, &location);
+        scanf("%s", input);
+        if (strcmp(input, "bye") == 0) {
+            break;
+        }
+        scanf("%s", location);
         if (strcmp(input, "ls") == 0) {
             if (strcmp(location, "server") == 0) {
                 //list files on server
@@ -56,23 +63,41 @@ int main( int argc, char *argv[] )  {
             }
             else if (strcmp(location, "client") == 0) {
                 //list files on client
+                //create file to put list of files on client side from system command
+                int defaultout = dup(1);
+                printf("%d\n", defaultout);
+                int commandOutput;
+                commandOutput = open("ls.txt",O_RDWR | O_TRUNC | O_CREAT);
+                int success = dup2(commandOutput, 1);
+                printf("%d\n", success);
                 system("ls");
+
+                //print files to screen
+                /*char file[250];
+                int i = 0;
+                while((fgets(file, 249, commandOutput)) != EOF) {
+                    printf("%s", file);
+                }*/
+                dup2(defaultout, 1);
+                close(commandOutput);
+                close(defaultout);
+
                 printf("If you wish to upload a file enter \"u\" followed by the file number");
             }
         }
         else if (strcmp(input, "d") == 0) {
             //download file to client
             char fileName[250];
-            unsigned int numBytes;
+            unsigned int numBytes = 0;
 
-            printf("File \"%s\" downloaded successfully. %d bytes received.", fileName, numBytes);
+            printf("ftp> File \"%s\" downloaded successfully. %d bytes received.", fileName, numBytes);
         }
         else if (strcmp(input, "u") == 0) {
             //upload file to server
             char fileName[250];
-            unsigned int numBytes;
+            unsigned int numBytes = 0;
 
-            printf("File \"%s\" uploaded successfully. %d bytes sent.", fileName, numBytes);
+            printf("ftp> File \"%s\" uploaded successfully. %d bytes sent.", fileName, numBytes);
         }
         printf("\n");
     }
