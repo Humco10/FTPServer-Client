@@ -23,6 +23,7 @@ int main(int argc, char *argv[])
     char buffer[500];
     int sockListen;
     int sockAccept;
+    int num;
     unsigned int addressLen;
     int length;
     const int Q_LEN = 5;
@@ -71,28 +72,38 @@ int main(int argc, char *argv[])
 
         while (sockAccept > 0)
         {
-            if ((num = recv(sockAccept, buffer, 1024, 0)) == -1)
+            if ((recv(sockAccept, buffer, sizeof(buffer), 0)) == -1)
             {
                 perror("recv");
                 exit(1);
             }
-            /*length = read(sockAccept, buffer, sizeof(buffer));
-            if (length > 0)
+
+            //length = read(sockAccept, buffer, sizeof(buffer));
+            if (strlen(buffer) > 0)
             {
-                int count;
-                for (count = 0; count < length; ++count)
+                printf("SERVER RECIEVED: %s\n", buffer);
+
+                if (strcmp(buffer, "ls") == 0)
                 {
-                    printf("%c\n", buffer[count]);
-                }
-                write(sockAccept, buffer, length);
-                if (buffer == "bye")
-                {
+                    system("ls");
+                    strcpy(buffer, "Success");
+                    send(sockAccept, buffer, sizeof(buffer), 0);
                     break;
+                }
+                //int count;
+                //for (count = 0; count < length; ++count)
+                //{
+                //printf("%c\n", buffer[count]);
+                //}
+                //write(sockAccept, buffer, length);
+                if (strcmp(buffer, "bye") == 0)
+                {
+                    close(sockAccept);
+                    exit(0);
                 }
             }
             else
                 break;
-                */
         }
         close(sockAccept);
     }
