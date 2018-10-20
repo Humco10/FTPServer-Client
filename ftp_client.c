@@ -17,25 +17,30 @@
 #include <stdlib.h>
 #include <netdb.h>
 
-int main( int argc, char *argv[] )  {
+int main(int argc, char *argv[])
+{
     //Create socket
     int sock;
     sock = socket(AF_INET, SOCK_STREAM, 0);
-    if (sock < 0) {
+
+    //Makes sure socket did not fail in creation.
+    if (sock < 0)
+    {
         printf("Failed to create the socket\n");
         exit(1);
     }
 
     //Create remote host address structure
     struct sockaddr_in sin;
-    bzero((char *) &sin, sizeof(sin));
-    sin.sin_family = AF_INET; //internet address type
-    sin.sin_port = htons((uint16_t) argv[2]); //set to port number
+    bzero((char *)&sin, sizeof(sin));
+    sin.sin_family = AF_INET;                 //internet address type
+    sin.sin_port = htons((uint16_t)argv[2]);  //set to port number
     sin.sin_addr.s_addr = inet_addr(argv[1]); //set ip address
 
-    //create connection
-    int returncode = connect(sock, (struct sockaddr *) &sin, sizeof(sin));
-    if (returncode < 0) {
+    //Try to create connection with host given the server ip address
+    int returncode = connect(sock, (struct sockaddr *)&sin, sizeof(sin));
+    if (returncode < 0)
+    {
         printf("Failed to connect with the host\n");
         exit(2);
     }
@@ -45,29 +50,35 @@ int main( int argc, char *argv[] )  {
     //Waiting for user input
     char input[10];
     char location[10];
-    while (strcmp(input, "bye") != 0) {
+    while (strcmp(input, "bye") != 0)
+    {
         printf("ftp> ");
         scanf("%s %s", &input, &location);
-        if (strcmp(input, "ls") == 0) {
-            if (strcmp(location, "server") == 0) {
+        if (strcmp(input, "ls") == 0)
+        {
+            if (strcmp(location, "server") == 0)
+            {
                 //list files on server
 
                 printf("If you wish to download a file enter \"d\" followed by the file number");
             }
-            else if (strcmp(location, "client") == 0) {
+            else if (strcmp(location, "client") == 0)
+            {
                 //list files on client
                 system("ls");
                 printf("If you wish to upload a file enter \"u\" followed by the file number");
             }
         }
-        else if (strcmp(input, "d") == 0) {
+        else if (strcmp(input, "d") == 0)
+        {
             //download file to client
             char fileName[250];
             unsigned int numBytes;
 
             printf("File \"%s\" downloaded successfully. %d bytes received.", fileName, numBytes);
         }
-        else if (strcmp(input, "u") == 0) {
+        else if (strcmp(input, "u") == 0)
+        {
             //upload file to server
             char fileName[250];
             unsigned int numBytes;
