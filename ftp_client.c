@@ -61,11 +61,34 @@ int main(int argc, char *argv[])
 
         if (strcmp(input, "bye") == 0)
         {
-            send(sock, input, sizeof(input), 0);
+            if (send(sock, input, sizeof(input), 0) == -1)
+            {
+                printf("Error in sending input to server");
+            }
+
             break;
         }
 
         scanf("%s", location);
+
+        //A testing input to test server response.
+        if (strcmp(input, "test") == 0)
+        {
+            if (send(sock, input, sizeof(input), 0) == -1)
+            {
+                printf("Error in sending input to server");
+            }
+
+            //Waits to recieve message back from the server and displays it.
+            if (recv(sock, input, sizeof(input), 1) > 0)
+            {
+                printf("test recieved: %s", input);
+            }
+            else
+            {
+                printf("Error recieving files");
+            }
+        }
 
         if (strcmp(input, "ls") == 0)
         {
@@ -78,19 +101,19 @@ int main(int argc, char *argv[])
                 }
                 else
                 {
-                    printf("ls command sent to server");
+                    //printf("ls command sent to server\n");
 
                     //Waits to recieve message back from the server and displays it.
-                    if (recv(sock, input, sizeof(input), 0) > 0)
+                    if (recv(sock, input, sizeof(input), 1) > 0)
                     {
-                        printf(strcat("ls recieved: ", input));
+                        printf("ls recieved: %s\n", input);
                     }
                     else
                     {
-                        printf("Error recieving files");
+                        printf("Error recieving files\n");
                     }
                 }
-                printf("If you wish to download a file enter \"d\" followed by the file number");
+                printf("If you wish to download a file enter \"d\" followed by the file number\n");
             }
             else if (strcmp(location, "client") == 0)
             {
@@ -123,16 +146,6 @@ int main(int argc, char *argv[])
                 }
 
                 closedir(directory);
-
-                //print files to screen
-                /*char file[250];
-                int i = 0;
-                while((fgets(file, 249, commandOutput)) != EOF) {
-                    printf("%s", file);
-                }*/
-                //dup2(defaultout, 1);
-                //close(commandOutput);
-                //close(defaultout);
 
                 printf("If you wish to upload a file enter \"u\" followed by the file number");
             }
