@@ -64,7 +64,6 @@ int main(int argc, char *argv[])
     //Await a connection request, and then
     while (1)
     {
-        printf("accepting again");
         sockAccept = accept(sockListen, (struct sockaddr *)&client_sin, &addressLen);
         if (sockAccept < 0)
         {
@@ -82,15 +81,13 @@ int main(int argc, char *argv[])
 
             if (strlen(buffer) > 0)
             {
-                printf("SERVER RECIEVED: %s\n", buffer);
-
                 if (strcmp(buffer, "ls") == 0)
                 {
                     //List files in a directory by reading them into this program
                     //by creating a directory object, and then print them out in
                     //order.
                     struct dirent *dp;
-                    DIR *directory = opendir(".");
+                    DIR *directory = opendir("./server/");
                     int listNum = 1;
 
                     //While there are still files in the directory
@@ -115,6 +112,12 @@ int main(int argc, char *argv[])
                     }
 
                     closedir(directory);
+
+                    //Go back to client
+                    if (send(sockAccept, buffer, sizeof(buffer), 0) == -1)
+                    {
+                        printf("Error sending buffer back to client");
+                    }
                 }
 
                 if (strcmp(buffer, "test") == 0)

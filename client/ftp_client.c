@@ -57,7 +57,6 @@ int main(int argc, char *argv[])
     {
         printf("ftp> ");
         scanf("%s", input);
-        printf("CLIENT INPUT: %s\n", input);
 
         if (strcmp(input, "bye") == 0)
         {
@@ -95,24 +94,16 @@ int main(int argc, char *argv[])
             if (strcmp(location, "server") == 0)
             {
                 //Send ls input to the server, display errors along the way if steps fail.
-                if (write(sock, input, sizeof(input)) == -1)
+                if (send(sock, input, sizeof(input), 0) == -1)
                 {
                     printf("Error in sending input to server");
                 }
-                else
-                {
-                    //printf("ls command sent to server\n");
 
-                    //Waits to recieve message back from the server and displays it.
-                    //if (recv(sock, input, sizeof(input), 1) > 0)
-                    //{
-                    //printf("ls recieved: %s\n", input);
-                    //}
-                    // else
-                    //{
-                    //printf("Error recieving files\n");
-                    //}
+                //Waits to recieve message back from the server before continuing
+                if (recv(sock, input, sizeof(input), 0) >= 0)
+                {
                 }
+
                 printf("If you wish to download a file enter \"d\" followed by the file number\n");
             }
             else if (strcmp(location, "client") == 0)
@@ -121,7 +112,7 @@ int main(int argc, char *argv[])
                 //by creating a directory object, and then print them out in
                 //order.
                 struct dirent *dp;
-                DIR *directory = opendir(".");
+                DIR *directory = opendir("./client/");
                 int listNum = 1;
 
                 //While there are still files in the directory
