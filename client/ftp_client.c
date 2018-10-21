@@ -80,7 +80,7 @@ int main(int argc, char *argv[])
             }
 
             //Waits to recieve message back from the server and displays it.
-            if (recv(sock, input, sizeof(input), 1) > 0)
+            if (recv(sock, input, sizeof(input), 0) >= 0)
             {
                 printf("test recieved: %s", input);
             }
@@ -95,7 +95,7 @@ int main(int argc, char *argv[])
             if (strcmp(location, "server") == 0)
             {
                 //Send ls input to the server, display errors along the way if steps fail.
-                if (send(sock, input, sizeof(input), 0) == -1)
+                if (write(sock, input, sizeof(input)) == -1)
                 {
                     printf("Error in sending input to server");
                 }
@@ -104,14 +104,14 @@ int main(int argc, char *argv[])
                     //printf("ls command sent to server\n");
 
                     //Waits to recieve message back from the server and displays it.
-                    if (recv(sock, input, sizeof(input), 1) > 0)
-                    {
-                        printf("ls recieved: %s\n", input);
-                    }
-                    else
-                    {
-                        printf("Error recieving files\n");
-                    }
+                    //if (recv(sock, input, sizeof(input), 1) > 0)
+                    //{
+                    //printf("ls recieved: %s\n", input);
+                    //}
+                    // else
+                    //{
+                    //printf("Error recieving files\n");
+                    //}
                 }
                 printf("If you wish to download a file enter \"d\" followed by the file number\n");
             }

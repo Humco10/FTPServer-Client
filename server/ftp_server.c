@@ -64,6 +64,7 @@ int main(int argc, char *argv[])
     //Await a connection request, and then
     while (1)
     {
+        printf("accepting again");
         sockAccept = accept(sockListen, (struct sockaddr *)&client_sin, &addressLen);
         if (sockAccept < 0)
         {
@@ -114,18 +115,12 @@ int main(int argc, char *argv[])
                     }
 
                     closedir(directory);
-
-                    if (send(sockAccept, buffer, sizeof(buffer), 1) == -1)
-                    {
-                        printf("Error sending buffer back to client");
-                    }
-
-                    break;
                 }
 
                 if (strcmp(buffer, "test") == 0)
                 {
-                    if (send(sockAccept, buffer, sizeof(buffer), 1) == -1)
+                    printf("This is buffer %s", buffer);
+                    if (send(sockAccept, buffer, sizeof(buffer), 0) == -1)
                     {
                         printf("Error sending buffer back to client");
                     }
@@ -143,9 +138,10 @@ int main(int argc, char *argv[])
                 }
             }
             else
+            {
                 break;
+            }
         }
-        close(sockAccept);
     }
     return 0;
 }
