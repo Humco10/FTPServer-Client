@@ -78,6 +78,7 @@ int main(int argc, char *argv[])
                 perror("recv");
                 exit(1);
             }
+            printf("%s\n", buffer);
 
             if (strlen(buffer) > 0)
             {
@@ -112,6 +113,7 @@ int main(int argc, char *argv[])
                     }
 
                     closedir(directory);
+                    printf("\n");
 
                     //Go back to client
                     if (send(sockAccept, buffer, sizeof(buffer), 0) == -1)
@@ -131,6 +133,35 @@ int main(int argc, char *argv[])
                 {
                     close(sockAccept);
                     exit(0);
+                }
+                else if (strcmp(buffer, "d") == 0)
+                {
+                    /*
+                    //Go back to client
+                    if (send(sockAccept, buffer, sizeof(buffer), 0) == -1)
+                    {
+                        printf("Error sending buffer back to client");
+                    }*/
+
+                    printf("Inside d\n");
+                    //Recieve fileNumber from client
+                    if ((recv(sockAccept, buffer, sizeof(buffer), 0)) == -1)
+                    {
+                        perror("recv");
+                        exit(1);
+                    }
+
+                    char fileNumber[10];
+                    strncpy(fileNumber, buffer, sizeof(fileNumber));
+                    printf("%s", fileNumber);
+                    
+                    //Go back to client
+                    if (send(sockAccept, buffer, sizeof(buffer), 0) == -1)
+                    {
+                        printf("Error sending buffer back to client");
+                    }
+                    
+                    
                 }
                 else if (strcmp(buffer, "u") == 0)
                 {

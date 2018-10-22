@@ -144,9 +144,87 @@ int main(int argc, char *argv[])
         }
         else if (strcmp(input, "d") == 0)
         {
+            char buffer[500];
+
+            //Tell server what operation is occurring
+            if (send(sock, input, sizeof(input), 0) == -1)
+            {
+                printf("Error in sending input to server");
+            }
+            /*
+            //Waits to recieve message back from the server before continuing
+            if (recv(sock, buffer, sizeof(buffer), 0) >= 0)
+            {
+                //Keeps sending an error called "no error" back so I'm ignoring it for now
+            }
+            */
+
+            //Tell server what file number to download
+            if (send(sock, location, sizeof(location), 0) == -1)
+            {
+                printf("Error in sending location to server");
+            }
+            printf("sent\n");
+            
             //download file to client
             char fileName[250];
             unsigned int numBytes = 0;
+            
+            //Recieve filename from client
+            if ((recv(sock, buffer, sizeof(buffer), 0)) == -1)
+            {
+                perror("recv");
+                exit(1);
+            }
+            printf("%s", buffer);
+            /*
+            //Sets filename and resets buffer so it can be rewritten
+            char filename[500];
+            strncpy(filename, buffer, sizeof(filename));
+
+            memset(buffer, 0, sizeof(buffer));
+
+            strcat(buffer, "./server/");
+            strcat(buffer, filename);
+
+            FILE *fp;
+            fp = fopen(buffer, "w");
+
+            //Send control of the terminal back to the client
+            if (send(sock, buffer, sizeof(buffer), 0) == -1)
+            {
+                printf("Error sending buffer back to client");
+            }
+
+            memset(buffer, 0, sizeof(buffer));
+
+            //Recieve the file text from the client
+            while (1)
+            {
+                if ((recv(sock, buffer, sizeof(buffer), 0)) == -1)
+                {
+                    perror("recv");
+                    exit(1);
+                }
+
+                //When buffer says end, that means to stop writing the file.
+                if (strcmp(buffer, "end") == 0)
+                {
+                    break;
+                }
+
+                fprintf(fp, "%s", buffer);
+
+                memset(buffer, 0, sizeof(buffer));
+
+                //Send control of the terminal back to the client
+                if (send(sock, buffer, sizeof(buffer), 0) == -1)
+                {
+                    printf("Error sending buffer back to client");
+                }
+            }
+
+            fclose(fp);*/
 
             printf("ftp> File \"%s\" downloaded successfully. %d bytes received.", fileName, numBytes);
         }
