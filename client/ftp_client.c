@@ -295,10 +295,12 @@ int main(int argc, char *argv[])
             //Read file chosen into the buffer (named input) to be sent to the server
             FILE *f;
             f = fopen(buffer, "r");
+            int byteCount = 0;
 
             //Keep reading file till it is completely written.
             while (fgets(buffer, sizeof(buffer), f))
             {
+                byteCount += strlen(buffer);
                 //Send file buffer to server to be written to the server files.
                 if (send(sock, buffer, sizeof(buffer), 0) == -1)
                 {
@@ -324,7 +326,7 @@ int main(int argc, char *argv[])
                 //Keeps sending an error called "no error" back so I'm ignoring it for now
             }
 
-            printf("ftp> File \"%s\" uploaded successfully. %d bytes sent.", dp->d_name, sizeof(f));
+            printf("ftp> File \"%s\" uploaded successfully. %d bytes sent.", dp->d_name, sizeof(byteCount));
 
             fclose(f);
         }
