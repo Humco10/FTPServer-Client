@@ -88,7 +88,6 @@ int main(int argc, char *argv[])
                     //order.
                     struct dirent *dp;
                     DIR *directory = opendir("./server/");
-                    int listNum = 1;
 
                     //While there are still files in the directory
                     while ((dp = readdir(directory)))
@@ -106,15 +105,25 @@ int main(int argc, char *argv[])
                         //Don't include hidden files that begin with a period.
                         if (indexOfPeriod != 0)
                         {
-                            printf("%d.  %s\n", listNum, dp->d_name);
-                            listNum++;
+                            //Send client back file names to list.
+                            if (send(sockAccept, dp->d_name, sizeof(dp->d_name), 0) == -1)
+                            {
+                                printf("Error sending buffer back to client");
+                            }
+
+                            //Wait for client to say it recieved the name to continue
+                            if ((recv(sockAccept, buffer, sizeof(buffer), 0)) == -1)
+                            {
+                                perror("recv");
+                                exit(1);
+                            }
                         }
                     }
 
                     closedir(directory);
 
-                    //Go back to client
-                    if (send(sockAccept, buffer, sizeof(buffer), 0) == -1)
+                    //Go back to client and tell client to stop listing server files.
+                    if (send(sockAccept, "end", sizeof("end"), 0) == -1)
                     {
                         printf("Error sending buffer back to client");
                     }

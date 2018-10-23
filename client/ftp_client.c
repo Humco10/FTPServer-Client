@@ -94,15 +94,38 @@ int main(int argc, char *argv[])
         {
             if (strcmp(location, "server") == 0)
             {
+                int listNum = 1;
+                char buffer[250];
+
                 //Send ls input to the server, display errors along the way if steps fail.
                 if (send(sock, input, sizeof(input), 0) == -1)
                 {
                     printf("Error in sending input to server");
                 }
 
-                //Waits to recieve message back from the server before continuing
-                if (recv(sock, input, sizeof(input), 0) >= 0)
+                while (1)
                 {
+                    //Recieves name of file from server
+                    if (recv(sock, buffer, sizeof(buffer), 0) >= 0)
+                    {
+                        perror("recv");
+                        exit(1);
+                    }
+
+                    //When server sends back end, end listing the files on the server.
+                    if (strcmp(buffer, "end") == 0)
+                    {
+                        break;
+                    }
+
+                    printf("%d.  %s\n", listNum, buffer);
+                    listNum++;
+
+                    //Send anything back to server to say that the file name was recieved.
+                    if (send(sock, input, sizeof(input), 0) == -1)
+                    {
+                        printf("Error in sending input to server");
+                    }
                 }
 
                 printf("If you wish to download a file enter \"d\" followed by the file number\n");
