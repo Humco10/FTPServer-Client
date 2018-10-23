@@ -121,6 +121,7 @@ int main(int argc, char *argv[])
                     }
 
                     closedir(directory);
+                    printf("\n");
 
                     //Go back to client and tell client to stop listing server files.
                     if (send(sockAccept, "end", sizeof("end"), 0) == -1)
@@ -140,6 +141,65 @@ int main(int argc, char *argv[])
                 {
                     close(sockAccept);
                     exit(0);
+                }
+                else if (strcmp(buffer, "d") == 0)
+                {
+                    //Recieve filename from client
+                    if ((recv(sockAccept, buffer, sizeof(buffer), 0)) == -1)
+                    {
+                        perror("recv");
+                        exit(1);
+                    }
+                    char filename[500];
+                    strncpy(filename, buffer, sizeof(filename));
+
+                    memset(buffer, 0, sizeof(buffer));
+
+                    strcat(buffer, "./client/");
+                    strcat(buffer, filename);
+
+                    FILE *fp;
+                    fp = fopen(buffer, "w");
+
+                    //Send control of the terminal back to the client
+                    if (send(sockAccept, buffer, sizeof(buffer), 0) == -1)
+                    {
+                        printf("Error sending buffer back to client");
+                    }
+
+                    memset(buffer, 0, sizeof(buffer));
+
+                    //Recieve the file text from the server
+                    while (1)
+                    {
+                        if ((recv(sockAccept, buffer, sizeof(buffer), 0)) == -1)
+                        {
+                        }
+
+                        //When buffer says end, that means to stop writing the file.
+                        if (strcmp(buffer, "end") == 0)
+                        {
+                            break;
+                        }
+
+                        fprintf(fp, "%s", buffer);
+
+                        memset(buffer, 0, sizeof(buffer));
+
+                        //Send control of the terminal back to the client
+                        if (send(sockAccept, buffer, sizeof(buffer), 0) == -1)
+                        {
+                            printf("Error sending buffer back to client");
+                        }
+                    }
+
+                    fclose(fp);
+
+                    //Send control of the terminal back to the client
+                    if (send(sockAccept, buffer, sizeof(buffer), 0) == -1)
+                    {
+                        printf("Error sending buffer back to client");
+                    }
                 }
                 else if (strcmp(buffer, "u") == 0)
                 {
