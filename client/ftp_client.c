@@ -144,89 +144,103 @@ int main(int argc, char *argv[])
         }
         else if (strcmp(input, "d") == 0)
         {
-            char buffer[500];
+			//Tell server what operation is occurring
+			if (send(sock, input, sizeof(input), 0) == -1)
+			{
+				printf("Error in sending input to server");
+			}
 
-            //Tell server what operation is occurring
-            if (send(sock, input, sizeof(input), 0) == -1)
-            {
-                printf("Error in sending input to server");
-            }
-            /*
-            //Waits to recieve message back from the server before continuing
-            if (recv(sock, buffer, sizeof(buffer), 0) >= 0)
-            {
-                //Keeps sending an error called "no error" back so I'm ignoring it for now
-            }
-            */
+			struct dirent *dp;
+			DIR *directory = opendir("./server/");
+			int fileIndex = 1;
+			char buffer[500];
 
-            //Tell server what file number to download
-            if (send(sock, location, sizeof(location), 0) == -1)
-            {
-                printf("Error in sending location to server");
-            }
-            printf("sent\n");
-            
-            //download file to client
-            char fileName[250];
-            unsigned int numBytes = 0;
-            
-            //Recieve filename from client
-            if ((recv(sock, buffer, sizeof(buffer), 0)) == -1)
-            {
-                perror("recv");
-                exit(1);
-            }
-            printf("%s", buffer);
-            /*
-            //Sets filename and resets buffer so it can be rewritten
-            char filename[500];
-            strncpy(filename, buffer, sizeof(filename));
+			//While there are still files in the directory
+			while ((dp = readdir(directory)))
+			{
+				//Determine is particular character is in string. This being the period
+				char *ptr = strchr(dp->d_name, '.');
+				int indexOfPeriod = -1;
 
-            memset(buffer, 0, sizeof(buffer));
+				//Get index of the period in the string
+				if (ptr)
+				{
+					indexOfPeriod = ptr - (dp->d_name);
+				}
 
-            strcat(buffer, "./server/");
-            strcat(buffer, filename);
+				//Don't include hidden files that begin with a period.
+				if (indexOfPeriod != 0)
+				{
+					char tempStr[5];
+					snprintf(tempStr, sizeof(tempStr), "%d", fileIndex);
 
-            FILE *fp;
-            fp = fopen(buffer, "w");
+					//If indicies match break so that dp->name is saved to the correct filename
+					if (strcmp(location, tempStr) == 0)
+					{
+						break;
+					}
 
-            //Send control of the terminal back to the client
-            if (send(sock, buffer, sizeof(buffer), 0) == -1)
-            {
-                printf("Error sending buffer back to client");
-            }
+					fileIndex++;
+				}
+			}
 
-            memset(buffer, 0, sizeof(buffer));
+			closedir(directory);
 
-            //Recieve the file text from the client
-            while (1)
-            {
-                if ((recv(sock, buffer, sizeof(buffer), 0)) == -1)
-                {
-                    perror("recv");
-                    exit(1);
-                }
+			//Send filename to server so it can create a file by the same name
+			if (send(sock, dp->d_name, sizeof(dp->d_name), 0) == -1)
+			{
+				printf("Error in sending input to server");
+			}
 
-                //When buffer says end, that means to stop writing the file.
-                if (strcmp(buffer, "end") == 0)
-                {
-                    break;
-                }
+			//Waits to recieve message back from the server before continuing
+			if (recv(sock, buffer, sizeof(buffer), 0) >= 0)
+			{
+				//Keeps sending an error called "no error" back so I'm ignoring it for now
+			}
 
-                fprintf(fp, "%s", buffer);
+			memset(buffer, 0, sizeof(buffer));
 
-                memset(buffer, 0, sizeof(buffer));
+			strcat(buffer, "./server/");
+			strcat(buffer, dp->d_name);
 
-                //Send control of the terminal back to the client
-                if (send(sock, buffer, sizeof(buffer), 0) == -1)
-                {
-                    printf("Error sending buffer back to client");
-                }
-            }
+			//Read file chosen into the buffer (named input) to be sent to the server
+			FILE *f;
+			f = fopen(buffer, "r");
+			int byteCount = 0;
 
-            fclose(fp);*/
+			//Keep reading file till it is completely written.
+			while (fgets(buffer, sizeof(buffer), f))
+			{
+				byteCount += strlen(buffer);
+				//Send file buffer to server to be written to the server files.
+				if (send(sock, buffer, sizeof(buffer), 0) == -1)
+				{
+					printf("Error in sending input to server");
+				}
 
-            printf("ftp> File \"%s\" downloaded successfully. %d bytes received.", fileName, numBytes);
+				//Waits to recieve message back from the server before continuing
+				if (recv(sock, buffer, sizeof(buffer), 0) >= 0)
+				{
+					//Keeps sending an error called "no error" back so I'm ignoring it for now
+				}
+			}
+
+			//Tell server to stop writing to the file
+			if (send(sock, "end", sizeof("end"), 0) == -1)
+			{
+				printf("Error in sending input to server");
+			}
+
+			//Waits to recieve message back from the server before continuing
+			if (recv(sock, buffer, sizeof(buffer), 0) >= 0)
+			{
+				//Keeps sending an error called "no error" back so I'm ignoring it for now
+			}
+
+			printf("ftp> File \"%s\" downloaded successfully. %d bytes sent.", dp->d_name, sizeof(byteCount));
+
+			fclose(f);
+
         }
         else if (strcmp(input, "u") == 0)
         {

@@ -78,7 +78,6 @@ int main(int argc, char *argv[])
                 perror("recv");
                 exit(1);
             }
-            printf("%s\n", buffer);
 
             if (strlen(buffer) > 0)
             {
@@ -136,32 +135,65 @@ int main(int argc, char *argv[])
                 }
                 else if (strcmp(buffer, "d") == 0)
                 {
-                    /*
-                    //Go back to client
-                    if (send(sockAccept, buffer, sizeof(buffer), 0) == -1)
-                    {
-                        printf("Error sending buffer back to client");
-                    }*/
+					//Recieve filename from client
+					if ((recv(sockAccept, buffer, sizeof(buffer), 0)) == -1)
+					{
+						perror("recv");
+						exit(1);
+					}
+					char filename[500];
+					strncpy(filename, buffer, sizeof(filename));
 
-                    printf("Inside d\n");
-                    //Recieve fileNumber from client
-                    if ((recv(sockAccept, buffer, sizeof(buffer), 0)) == -1)
-                    {
-                        perror("recv");
-                        exit(1);
-                    }
+					memset(buffer, 0, sizeof(buffer));
 
-                    char fileNumber[10];
-                    strncpy(fileNumber, buffer, sizeof(fileNumber));
-                    printf("%s", fileNumber);
-                    
-                    //Go back to client
-                    if (send(sockAccept, buffer, sizeof(buffer), 0) == -1)
-                    {
-                        printf("Error sending buffer back to client");
-                    }
-                    
-                    
+					strcat(buffer, "./client/");
+					strcat(buffer, filename);
+
+					FILE *fp;
+					fp = fopen(buffer, "w");
+
+					//Send control of the terminal back to the client
+					if (send(sockAccept, buffer, sizeof(buffer), 0) == -1)
+					{
+						printf("Error sending buffer back to client");
+					}
+
+					memset(buffer, 0, sizeof(buffer));
+
+					//Recieve the file text from the server
+					while (1)
+					{
+						if ((recv(sockAccept, buffer, sizeof(buffer), 0)) == -1)
+						{
+							perror("recv");
+							exit(1);
+						}
+
+						//When buffer says end, that means to stop writing the file.
+						if (strcmp(buffer, "end") == 0)
+						{
+							break;
+						}
+
+						fprintf(fp, "%s", buffer);
+
+						memset(buffer, 0, sizeof(buffer));
+
+						//Send control of the terminal back to the client
+						if (send(sockAccept, buffer, sizeof(buffer), 0) == -1)
+						{
+							printf("Error sending buffer back to client");
+						}
+					}
+
+					fclose(fp);
+
+					//Send control of the terminal back to the client
+					if (send(sockAccept, buffer, sizeof(buffer), 0) == -1)
+					{
+						printf("Error sending buffer back to client");
+					}
+
                 }
                 else if (strcmp(buffer, "u") == 0)
                 {
