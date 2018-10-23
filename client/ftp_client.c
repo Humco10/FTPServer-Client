@@ -340,6 +340,7 @@ int main(int argc, char *argv[])
             //Keep reading file till it is completely written.
             while (fgets(buffer, sizeof(buffer), f))
             {
+                byteCount += strlen(buffer);
                 //Send file buffer to server to be written to the server files.
                 if (send(sock, buffer, sizeof(buffer), 0) == -1)
                 {
